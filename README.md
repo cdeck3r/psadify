@@ -22,3 +22,39 @@ psadify.py [-h] [-o OUTPUT]
 -h, --help                      Show this message and exit
 -o, --output OUTPUT             The file that is generated with the HTML content
 ```
+
+#### Run Tests
+
+Use the dockerized dev system below. From bash console within the container
+
+```bash
+# cd /PSADify
+# python3 -m pytest
+```
+
+#### Dev system
+
+**Setup:** Start in project's root dir and create a `.env` file with the content shown below.
+```
+# .env file
+
+# In the container, this is the directory where the code is found
+# Example:
+APP_ROOT=/PSADify
+
+# The HOST directory containing directories to be mounted into containers
+# This is the directory path where you have cloned this repo.
+# Example:
+VOL_DIR=/dev/psadify
+```
+
+**Create** docker image. Please see [Dockerfiles/Dockerfile.psadify](Dockerfiles/Dockerfile.psadify) for details.
+```bash
+docker-compose build psadify
+```
+
+**Spin up** the container and get a shell from the container
+```bash
+docker-compose up -d psadify
+docker exec -it psadify /bin/bash
+```
