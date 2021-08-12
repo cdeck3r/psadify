@@ -25,14 +25,14 @@ psadify.py [-h] [-o OUTPUT]
 
 #### Run Tests
 
-Use the dockerized dev system below. From bash console within the container
+Use the dockerized dev system below. Run the following commands from the bash console within the container
 
 ```bash
 # cd /PSADify
 # python3 -m pytest
 ```
 
-#### Dev system
+#### Dev System
 
 **Setup:** Start in project's root dir and create a `.env` file with the content shown below.
 ```
