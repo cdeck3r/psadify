@@ -1,0 +1,45 @@
+version: '3'
+
+services:
+  psadify:
+    build: 
+      context: ./Dockerfiles
+      dockerfile: Dockerfile.psadify
+    container_name: psadify
+    image: psadify:latest
+    volumes:
+      - repo:/PSADifyRepo
+      - src:${APP_ROOT}/src
+      - tests:${APP_ROOT}/tests
+      - scripts:${APP_ROOT}/scripts
+    privileged: ${DEVSYS_PRIV:-false}
+    stdin_open: true
+    tty: true
+#
+# Volume definition
+# 
+volumes:
+  repo:
+    driver: local
+    driver_opts:
+      type: none
+      device: ${VOL_DIR}/
+      o: bind
+  src:
+    driver: local
+    driver_opts:
+      type: none
+      device: ${VOL_DIR}/src
+      o: bind
+  tests:
+    driver: local
+    driver_opts:
+      type: none
+      device: ${VOL_DIR}/tests
+      o: bind
+  scripts:
+    driver: local
+    driver_opts:
+      type: none
+      device: ${VOL_DIR}/scripts
+      o: bind
