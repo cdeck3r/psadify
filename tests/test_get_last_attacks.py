@@ -2,7 +2,7 @@ import os
 import shutil
 
 import pytest
-from src import psadify
+from src.psadify import psadify
 
 ''' Unit tests for get_last_attacks
 

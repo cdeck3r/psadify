@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 # MIT License
 # Copyright (c) 2018 Matt Westfall (@disloops)
 
@@ -21,9 +19,11 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-__author__ = 'Matt Westfall'
-__version__ = '1.0.1'
-__email__ = 'disloops@gmail.com'
+# Src: https://stackoverflow.com/a/60913263
+# If you are an idiot, like me, then also check whether 
+# you didn't name your python file the same as the module 
+# you are trying to import. - Arrrrgh!
+
 
 import os
 import re
@@ -32,7 +32,6 @@ import time
 import glob
 import urllib
 import socket
-import argparse
 
 # compile the latest attacks
 def get_last_attacks():
@@ -517,38 +516,3 @@ def get_html(last_attacks, top_attackers, top_signatures, top_ports):
 
     return html
 
-def main():
-
-    logo_msg = '\n PSADify v' + __version__
-
-    epilog_msg = ('example:\n' +
-                 ' $ python psadify.py -output status.html\n' +
-                 logo_msg + '\n A tool for converting PSAD output into HTML.')
-
-    parser = argparse.ArgumentParser(add_help=False,formatter_class=argparse.RawTextHelpFormatter,epilog=epilog_msg)
-    parser.add_argument('-h', '--help', dest='show_help', action='store_true', help='Show this message and exit\n\n')
-    parser.add_argument('-o', '--output', help='The file that is generated with the HTML content\n', type=str)
-    parser.set_defaults(show_help='False')
-    args = parser.parse_args()
-
-    if args.show_help is True:
-        print('')
-        print(parser.format_help())
-        sys.exit(0)
-
-    print(logo_msg)
-
-    output_file = 'status.html'
-    if args.output:
-        output_file = args.output
-
-    html = get_html(get_last_attacks(), get_top_attackers(), get_top_signatures(), get_top_ports())
-
-    with open(output_file, 'w') as f:
-        print(' [*] Writing output to ' + output_file)
-        f.write(html)
-
-    print('')
-
-if __name__ == '__main__':
-    sys.exit(main())
