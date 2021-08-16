@@ -20,21 +20,22 @@
 # SOFTWARE.
 
 # Src: https://stackoverflow.com/a/60913263
-# If you are an idiot, like me, then also check whether 
-# you didn't name your python file the same as the module 
+# If you are an idiot, like me, then also check whether
+# you didn't name your python file the same as the module
 # you are trying to import. - Arrrrgh!
 
 
+import glob
 import os
 import re
+import socket
 import sys
 import time
-import glob
 import urllib
-import socket
+
 
 # compile the latest attacks
-def get_last_attacks():
+def get_last_attacks(filter_private_ip=True):
 
     last_attacks = []
 
@@ -42,7 +43,9 @@ def get_last_attacks():
     internal_ip_re = re.compile('^(?:10|127|172\.(?:1[6-9]|2[0-9]|3[01])|192\.168)\..*')
 
     # PSAD IP log files sorted by date
-    files = sorted(glob.iglob('/var/log/psad/*/*_email_alert'), key=os.path.getmtime, reverse=True)
+    files = sorted(
+        glob.iglob('/var/log/psad/*/*_email_alert'), key=os.path.getmtime, reverse=True
+    )
 
     # imperfect science of extracting info from WHOIS data
     country_re = re.compile('^country:', flags=re.IGNORECASE)
@@ -53,7 +56,9 @@ def get_last_attacks():
             try:
                 file_dir = os.path.dirname(file)
                 socket.inet_pton(socket.AF_INET, os.path.basename(file_dir))
-                if not internal_ip_re.match(os.path.basename(file_dir)):
+                if (not filter_private_ip) or (
+                    not internal_ip_re.match(os.path.basename(file_dir))
+                ):
 
                     last_seen = time.ctime(os.path.getmtime(file))
                     first_seen = '?'
@@ -71,7 +76,10 @@ def get_last_attacks():
                     with open(file, 'r') as f:
 
                         for line in f.readlines():
-                            if first_seen == '?' and "overall scan start:" in line.lower():
+                            if (
+                                first_seen == '?'
+                                and "overall scan start:" in line.lower()
+                            ):
                                 first_seen = line.split(": ", 1)[1]
                             if IP == '?' and "source:" in line.lower():
                                 IP = line.split(": ", 1)[1]
@@ -83,7 +91,7 @@ def get_last_attacks():
                             "first_seen": first_seen,
                             "IP": IP,
                             "country": country,
-                            "ports": ports
+                            "ports": ports,
                         }
                         last_attacks.append(attacker_dict)
 
@@ -94,8 +102,9 @@ def get_last_attacks():
 
     return last_attacks
 
+
 # parse the top attackers file
-def get_top_attackers():
+def get_top_attackers(filter_private_ip=True):
 
     top_attackers = []
     raw_attackers = None
@@ -144,13 +153,14 @@ def get_top_attackers():
                         "IP": IP,
                         "hits": hits,
                         "country": country,
-                        "host": max(host, key=len)
+                        "host": max(host, key=len),
                     }
                     top_attackers.append(attacker_dict)
             except:
                 pass
 
     return top_attackers
+
 
 # parse the top signatures file
 def get_top_signatures():
@@ -168,16 +178,13 @@ def get_top_signatures():
                 sig = ' '.join(re.findall(r'"(.*?)"', signature))
                 hits = ' '.join(signature.split('"')[-1:]).split()[0]
 
-                sig_dict = {
-                    "SID": sid,
-                    "sig": sig,
-                    "hits": hits
-                }
+                sig_dict = {"SID": sid, "sig": sig, "hits": hits}
                 top_signatures.append(sig_dict)
             except:
                 pass
 
     return top_signatures
+
 
 # parse the top ports file
 def get_top_ports():
@@ -195,15 +202,13 @@ def get_top_ports():
                     port_num = port.split()[1]
                     hits = port.split()[2]
 
-                    port_dict = {
-                        "port_num": port_num,
-                        "hits": hits
-                    }
+                    port_dict = {"port_num": port_num, "hits": hits}
                     top_ports.append(port_dict)
             except:
                 pass
 
     return top_ports
+
 
 # create last attacks HTML table
 def get_last_attacks_html(last_attacks):
@@ -219,12 +224,20 @@ def get_last_attacks_html(last_attacks):
 
     for attack in last_attacks:
 
-        IP_link = '<a href="https://www.whois.com/whois/' + attack['IP'] + '" target="_blank">'
+        IP_link = (
+            '<a href="https://www.whois.com/whois/'
+            + attack['IP']
+            + '" target="_blank">'
+        )
         IP_link += attack['IP'] + '</a>'
 
         last_attacks_html += '<tr class="psadTableRow">'
-        last_attacks_html += '<td class="psadTableCell">' + attack['last_seen'] + '</td>'
-        last_attacks_html += '<td class="psadTableCell">' + attack['first_seen'] + '</td>'
+        last_attacks_html += (
+            '<td class="psadTableCell">' + attack['last_seen'] + '</td>'
+        )
+        last_attacks_html += (
+            '<td class="psadTableCell">' + attack['first_seen'] + '</td>'
+        )
         last_attacks_html += '<td class="psadTableCell">' + IP_link + '</td>'
         last_attacks_html += '<td class="psadTableCell">' + attack['country'] + '</td>'
         last_attacks_html += '<td class="psadTableCell">' + attack['ports'] + '</td>'
@@ -232,6 +245,7 @@ def get_last_attacks_html(last_attacks):
 
     last_attacks_html += '</table>'
     return last_attacks_html
+
 
 # create top attackers HTML table
 def get_attackers_html(top_attackers):
@@ -250,19 +264,30 @@ def get_attackers_html(top_attackers):
 
     for attacker in top_attackers[:rows]:
 
-        IP_link = '<a href="https://www.whois.com/whois/' + attacker['IP'] + '" target="_blank">'
+        IP_link = (
+            '<a href="https://www.whois.com/whois/'
+            + attacker['IP']
+            + '" target="_blank">'
+        )
         IP_link += attacker['IP'] + '</a>'
 
         top_attackers_html += '<tr class="psadTableRow">'
-        top_attackers_html += '<td class="psadTableCell">' + attacker['last_seen'] + '</td>'
+        top_attackers_html += (
+            '<td class="psadTableCell">' + attacker['last_seen'] + '</td>'
+        )
         top_attackers_html += '<td class="psadTableCell">' + attacker['hits'] + '</td>'
         top_attackers_html += '<td class="psadTableCell">' + IP_link + '</td>'
-        top_attackers_html += '<td class="psadTableCell">' + attacker['country'].upper() + '</td>'
-        top_attackers_html += '<td class="psadTableCellLeft">' + attacker['host'] + '</td>'
+        top_attackers_html += (
+            '<td class="psadTableCell">' + attacker['country'].upper() + '</td>'
+        )
+        top_attackers_html += (
+            '<td class="psadTableCellLeft">' + attacker['host'] + '</td>'
+        )
         top_attackers_html += '</tr>'
 
     top_attackers_html += '</table>'
     return top_attackers_html
+
 
 def get_signatures_html(top_signatures):
 
@@ -275,17 +300,22 @@ def get_signatures_html(top_signatures):
 
     for signature in top_signatures:
 
-        sig_link = '<a href="https://www.google.com/search?q=' + urllib.quote_plus(signature['sig'])
+        sig_link = '<a href="https://www.google.com/search?q=' + urllib.quote_plus(
+            signature['sig']
+        )
         sig_link += '" target="_blank">' + signature['sig'] + '</a>'
 
         top_signatures_html += '<tr class="psadTableRow">'
-        top_signatures_html += '<td class="psadTableCell">' + signature['hits'] + '</td>'
+        top_signatures_html += (
+            '<td class="psadTableCell">' + signature['hits'] + '</td>'
+        )
         top_signatures_html += '<td class="psadTableCell">' + signature['SID'] + '</td>'
         top_signatures_html += '<td class="psadTableCellLeft">' + sig_link + '</td>'
         top_signatures_html += '</tr>'
 
     top_signatures_html += '</table>'
     return top_signatures_html
+
 
 def get_ports_html(top_ports):
 
@@ -298,9 +328,11 @@ def get_ports_html(top_ports):
     top_ports_html += '<td class="psadTableHead">Hits</td>'
     top_ports_html += '</tr>'
 
-    for port in top_ports[:rows//2]:
+    for port in top_ports[: rows // 2]:
 
-        port_link = '<a href="https://www.speedguide.net/port.php?port=' + port['port_num']
+        port_link = (
+            '<a href="https://www.speedguide.net/port.php?port=' + port['port_num']
+        )
         port_link += '" target="_blank">' + port['port_num'] + '</a>'
 
         top_ports_html += '<tr class="psadTableRow">'
@@ -315,9 +347,11 @@ def get_ports_html(top_ports):
     top_ports_html += '<td class="psadTableHead">Hits</td>'
     top_ports_html += '</tr>'
 
-    for port in top_ports[rows//2:rows]:
+    for port in top_ports[rows // 2 : rows]:
 
-        port_link = '<a href="https://www.speedguide.net/port.php?port=' + port['port_num']
+        port_link = (
+            '<a href="https://www.speedguide.net/port.php?port=' + port['port_num']
+        )
         port_link += '" target="_blank">' + port['port_num'] + '</a>'
 
         top_ports_html += '<tr class="psadTableRow">'
@@ -329,6 +363,7 @@ def get_ports_html(top_ports):
     top_ports_html += '</div>'
 
     return top_ports_html
+
 
 def get_css():
 
@@ -392,6 +427,7 @@ body {
 """
     return css
 
+
 def get_javascript():
 
     js = """
@@ -451,6 +487,7 @@ window.onload = function() {
 """
     return js
 
+
 def get_html_header():
 
     conf_file = "/etc/psad/psad.conf"
@@ -487,6 +524,7 @@ def get_html_header():
 
     return html
 
+
 def get_html_footer():
 
     github_link = '<a href="https://github.com/disloops/psadify" target="_blank">https://github.com/disloops/psadify</a>'
@@ -497,6 +535,7 @@ def get_html_footer():
     html += '</div>'
 
     return html
+
 
 def get_html(last_attacks, top_attackers, top_signatures, top_ports):
 
@@ -515,4 +554,3 @@ def get_html(last_attacks, top_attackers, top_signatures, top_ports):
     html += '</body></html>'
 
     return html
-
