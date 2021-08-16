@@ -23,6 +23,16 @@ psadify.py [-h] [-o OUTPUT]
 -o, --output OUTPUT             The file that is generated with the HTML content
 ```
 
+#### Installation
+
+PSADify is not on PyPi. Please install manually from GitHub.
+
+```bash
+# git clone https://github.com/disloops/psadify.git
+# cd psadify
+# pip install .
+```
+
 #### Run Tests
 
 Use the dockerized dev system below. Run the following commands from the bash console within the container
@@ -33,6 +43,8 @@ Use the dockerized dev system below. Run the following commands from the bash co
 ```
 
 #### Dev System
+
+The dev system is a dockerized linux system. When the container starts it installs the psadify python package in editable mode. See `entrypoint` section in `docker-composer.yml`.
 
 **Setup:** Start in project's root dir and create a `.env` file with the content shown below.
 ```
@@ -58,3 +70,9 @@ docker-compose build psadify
 docker-compose up -d psadify
 docker exec -it psadify /bin/bash
 ```
+
+The container mounts the directories from the git repo as follows (repo directory -> container directory) 
+
+* `psadify` -> `/PSADifyRepo`
+* `src` -> `/PSADify/src` 
+* `tests` -> `/PSADify/tests` 

@@ -15,6 +15,8 @@ services:
     privileged: ${DEVSYS_PRIV:-false}
     stdin_open: true
     tty: true
+    entrypoint: ["/bin/sh", "-c" , "pip install -e /PSADifyRepo && /bin/bash"]
+
 #
 # Volume definition
 # 
